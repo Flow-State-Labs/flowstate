@@ -1,0 +1,34 @@
+{
+	"name": "@flowstate/core",
+	"version": "0.0.1",
+	"description": "Core flow-to-stream virtualization for the Superfluid protocol.",
+	"main": "./lib/cjs/index.js",
+	"module": "./lib/esm/index.js",
+	"types": "./lib/esm/index.d.ts",
+	"scripts": {
+		"build": "yarn build:esm && yarn build:cjs",
+		"build:esm": "tsc",
+		"build:cjs": "tsc --module commonjs --outDir lib/cjs",
+		"clean": "rm -rf ./lib",
+		"test": "export TS_NODE_PROJECT=\"tsconfig.testing.json\" && mocha -r ts-node/register 'tests/**/*.ts' --exit"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Flow-State-Labs/flowstate.git",
+		"directory": "packages/core"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@types/bn.js": "^5.1.0",
+		"@types/chai": "^4.2.22",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "^16.10.2",
+		"chai": "^4.3.4",
+		"mocha": "^9.1.2",
+		"ts-node": "^10.2.1"
+	},
+	"dependencies": {
+		"bn.js": "^5.2.0",
+		"decimal.js": "^10.3.1"
+	}
+}

@@ -1,0 +1,21 @@
+{
+	"name": "@flowstate/node",
+	"version": "0.0.1",
+	"description": "Core flow to stream virtualization",
+	"main": "dist/index.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Flow-State-Labs/flowstate.git",
+		"directory": "packages/node"
+	},
+	"license": "MIT",
+	"private": false,
+	"devDependencies": {
+		"@types/node": "^16.10.2"
+	},
+	"dependencies": {
+		"bn.js": "^5.2.0",
+		"decimal.js": "^10.3.1",
+		"flowstate-core": "link:../core"
+	}
+}

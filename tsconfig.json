@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@flowstate/*": ["./packages/*/src"]
+		},
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"esModuleInterop": true,
+		"importsNotUsedAsValues": "error",
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noImplicitUseStrict": false,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictNullChecks": true,
+		"strict": true,
+		"noStrictGenericChecks": false,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true
+	},
+	"exclude": [
+		"./packages/*/lib",
+		"./packages/*/tests",
+		"./packages/*/node_modules",
+		"./node_modules"
+	]
+}
