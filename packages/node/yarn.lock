@@ -3,9 +3,9 @@
 
 
 "@flowstate/core@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@flowstate/core/-/core-0.1.0.tgz#3843e0c7bbb168e44324c129d3cd9c2053346659"
-  integrity sha512-zUPB345pgMrHdto+LQOBro7pYZYQR8uv9dLN2GsLmYT5rGw1m4qoaF5AUSGi5aFiqOW51vLQf6gvthmuLHtEYA==
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@flowstate/core/-/core-0.1.1.tgz#6db774ccede3a8fa688496b3a2e79e2ed073e3b6"
+  integrity sha512-ym7uEaSXVJTvO7KwAT+d+R2/eSBfi9x4zgrax9yBiybT/77jE/NlGaZtnrG1/t7hXEieu0zV4ubznIaeTWmTLQ==
   dependencies:
     bn.js "^5.2.0"
     decimal.js "^10.3.1"
