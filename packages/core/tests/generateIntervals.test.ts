@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import 'mocha'
 import { generateIntervals } from '../src/generateIntervals'
-import { TimeFrame } from '../src/types'
+import type { TimeFrame } from '../src/types'
 
 const dateToTimestamp = (dateStr: string) => new Date(dateStr).getTime()
 

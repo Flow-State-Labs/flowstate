@@ -21,7 +21,7 @@ export enum FlowUpdateType {
 }
 
 export interface FlowUpdate {
-	id: string
+	flowId: string
 	timestamp: number
 	flowRate: string
 	oldFlowRate: string

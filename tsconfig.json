@@ -1,14 +1,17 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
+		"baseUrl": "./packages",
 		"paths": {
-			"@flowstate/*": ["./packages/*/src"]
+			"@flowstate/core": ["core/src"],
+			"@flowstate/node": ["node/src"]
 		},
+		"composite": true,
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
 		"esModuleInterop": true,
 		"importsNotUsedAsValues": "error",
 		"forceConsistentCasingInFileNames": true,
+		"moduleResolution": "node",
 		"noImplicitReturns": true,
 		"noImplicitUseStrict": false,
 		"noImplicitAny": true,
@@ -17,7 +20,8 @@
 		"strict": true,
 		"noStrictGenericChecks": false,
 		"noUnusedLocals": true,
-		"noUnusedParameters": true
+		"noUnusedParameters": true,
+		"resolveJsonModule": true
 	},
 	"exclude": [
 		"./packages/*/lib",

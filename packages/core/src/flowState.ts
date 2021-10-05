@@ -5,12 +5,10 @@ import BN from 'bn.js'
 export function getFlowState({
 	timeFrame,
 	flowUpdates,
-	granularity: optGranularity
+	granularity = 'day'
 }: FlowStateParams): Array<FlowState> {
-	const granularity = optGranularity || 'day'
 	// ALWAYS returns intervals in seconds
 	const intervals = generateIntervals(timeFrame, granularity)
-
 	let flowState: Array<FlowState> = []
 	// loop the intervals
 	for (let index = 0; index < intervals.length - 1; ++index) {
@@ -32,10 +30,10 @@ export function getIntervalFlowState({
 }: FlowStateParams): Array<FlowState> {
 	const { start, end } = timeFrame
 
-	// loop once to split flowUpdates:
+	// loop flowUpdates to split:
 	// beginning of arr to startTime, startTime to endTime
 	let startIndex, endIndex, iterator
-	for (iterator = 0; iterator <= flowUpdates.length; ++iterator) {
+	for (iterator = 0; iterator < flowUpdates.length; ++iterator) {
 		if (flowUpdates[iterator].timestamp >= start) {
 			// last index before startTime
 			startIndex = iterator - 1
@@ -50,7 +48,7 @@ export function getIntervalFlowState({
 	// flowUpdates without a closing update
 	let openFlows: Array<FlowUpdate> = []
 
-	// loop again to find flows opened and updated but NOT closed before start
+	// loop flowUpdates to find flows opened and updated but NOT closed before start
 	for (const flowUpdate of flowUpdatesBeforeStart) {
 		switch (flowUpdate.type) {
 			case FlowUpdateType.Created:
@@ -58,32 +56,42 @@ export function getIntervalFlowState({
 				break
 			case FlowUpdateType.Updated:
 				const updateIndex = openFlows.findIndex(
-					flow => flow.id === flowUpdate.id
+					flow => flow.flowId === flowUpdate.flowId
 				)
 				openFlows[updateIndex] = flowUpdate
 				break
 			case FlowUpdateType.Deleted:
 				const deleteIndex = openFlows.findIndex(
-					flow => flow.id === flowUpdate.id
+					flow => flow.flowId === flowUpdate.flowId
 				)
-				openFlows[deleteIndex] = flowUpdate
+				openFlows.splice(deleteIndex, 1)
 				break
 			default:
 				throw Error(`Unexpected flowUpdate type: ${flowUpdate.type}`)
 		}
 	}
 
-	let flowState: Array<FlowState> = []
-	// loop a third time to handle events throughout the timeFrame
+	// loop openFlows to push open flows to the flowState before looping
+	let flowState: Array<FlowState> = openFlows.map(openFlow => ({
+		flowId: openFlow.flowId,
+		updates: [openFlow.timestamp],
+		amount: '0',
+		sender: openFlow.sender,
+		recipient: openFlow.recipient,
+		transactionHash: openFlow.transactionHash,
+		token: openFlow.token
+	}))
+
+	// loop flowUpdates to handle events throughout the timeFrame
 	for (const flowUpdate of flowUpdatesStartToEnd) {
 		const flowStateIndex = flowState.findIndex(
-			flow => flow.flowId === flowUpdate.id
+			flow => flow.flowId === flowUpdate.flowId
 		)
 		switch (flowUpdate.type) {
 			case FlowUpdateType.Created:
 				if (flowStateIndex !== -1) {
 					flowState.push({
-						flowId: flowUpdate.id,
+						flowId: flowUpdate.flowId,
 						updates: [flowUpdate.timestamp],
 						amount: '0',
 						sender: flowUpdate.sender,
@@ -91,9 +99,17 @@ export function getIntervalFlowState({
 						transactionHash: flowUpdate.transactionHash,
 						token: flowUpdate.token
 					})
+					openFlows.push(flowUpdate)
 				}
 				break
 			case FlowUpdateType.Updated:
+				const openFlowIndex = openFlows.findIndex(
+					flow => flow.flowId === flowUpdate.flowId
+				)
+				if (flowStateIndex === -1)
+					throw Error(
+						`flow update called on non existent flow: ${flowUpdate.flowId}, ${flowUpdate.timestamp}`
+					)
 				// code block due to naming collisions between update and delete
 				{
 					// amount += lastSum + oldFlowRate * (timestamp - lastTimestamp)
@@ -107,7 +123,7 @@ export function getIntervalFlowState({
 					const amount = new BN(lastSum)
 						.add(streamedSinceLastUpdate)
 						.toString()
-					const updates = lastUpdates.push(flowUpdate.timestamp)
+					const updates = [...lastUpdates, flowUpdate.timestamp]
 					// update amount and updates on the flowState object
 					Object.assign(flowState[flowStateIndex], {
 						amount,
@@ -115,9 +131,6 @@ export function getIntervalFlowState({
 					})
 					// on update, update openFlows to latest flowUpdate
 					// this is for a loop over openFlows
-					const openFlowIndex = openFlows.findIndex(
-						flow => flow.id === flowUpdate.id
-					)
 					openFlows[openFlowIndex] = flowUpdate
 				}
 				break
@@ -125,6 +138,13 @@ export function getIntervalFlowState({
 			case FlowUpdateType.Deleted:
 				// code block due to naming collisions between update and delete
 				{
+					const openFlowIndex = openFlows.findIndex(
+						flow => flow.flowId === flowUpdate.flowId
+					)
+					if (flowStateIndex === -1)
+						throw Error(
+							`flow close called on non existent flow: ${flowUpdate.flowId}, ${flowUpdate.timestamp}`
+						)
 					// amount += lastSum + oldFlowRate * (timestamp - lastTimestamp)
 					const { amount: lastSum, updates: lastUpdates } =
 						flowState[flowStateIndex]
@@ -136,16 +156,13 @@ export function getIntervalFlowState({
 					const amount = new BN(lastSum)
 						.add(streamedSinceLastUpdate)
 						.toString()
-					const updates = lastUpdates.push(flowUpdate.timestamp)
+					const updates = [...lastUpdates, flowUpdate.timestamp]
 					Object.assign(flowState[flowStateIndex], {
 						amount,
 						updates
 					})
 					// on delete, delete flowUpdate from openFlows
 					// this is for a loop over openFlows
-					const openFlowIndex = openFlows.findIndex(
-						flow => flow.id === flowUpdate.id
-					)
 					openFlows.splice(openFlowIndex, 1)
 				}
 				break
@@ -157,46 +174,36 @@ export function getIntervalFlowState({
 	// final pass over flows not closed before the end of the day
 	for (const openFlow of openFlows) {
 		const flowStateIndex = flowState.findIndex(
-			flow => flow.flowId === openFlow.id
+			flow => flow.flowId === openFlow.flowId
 		)
-		if (flowStateIndex !== -1) {
-			// if flow is open, and is on flowState
-			// flowState should have the final update before the endTime
-			const { updates: lastUpdates, amount: lastAmount } =
-				flowState[flowStateIndex]
-
-			const updates = lastUpdates.push(end)
-			const amount = new BN(lastAmount).add(
-				new BN(openFlow.flowRate).mul(new BN(end - openFlow.timestamp))
-			)
-			Object.assign(flowState[flowStateIndex], {
-				updates,
-				amount
-			})
-		} else {
-			// if a flow is open, but not on flowState,
-			// the flow was not updated throughout the day.
-			// Push with flowRate * (end - start)
-			const {
-				id: flowId,
-				sender,
-				recipient,
-				transactionHash,
-				token
-			} = openFlow
-
+		if (flowStateIndex === -1)
+			throw Error(`flow not found ${openFlow.flowId}`)
+		if (
+			flowState[flowStateIndex].updates.length === 1 &&
+			flowState[flowStateIndex].updates[0] < start
+		) {
+			// open before day, not updated during day
+			// get total of day, update flowState element
 			const amount = new BN(openFlow.flowRate)
 				.mul(new BN(end - start))
 				.toString()
-
-			flowState.push({
-				flowId,
-				updates: [start, end],
-				amount,
-				sender,
-				recipient,
-				transactionHash,
-				token
+			Object.assign(flowState[flowStateIndex], {
+				amount
+			})
+		} else {
+			const { updates: lastUpdates, amount: lastAmount } =
+				flowState[flowStateIndex]
+			const updates = [...lastUpdates, end]
+			const amount = new BN(lastAmount)
+				.add(
+					new BN(openFlow.flowRate).mul(
+						new BN(end - openFlow.timestamp)
+					)
+				)
+				.toString()
+			Object.assign(flowState[flowStateIndex], {
+				updates,
+				amount
 			})
 		}
 	}

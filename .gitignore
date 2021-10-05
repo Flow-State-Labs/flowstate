@@ -1,6 +1,16 @@
 # npm / yarn
 node_modules
 packages/*/lib
+npm-debug.*
+*.tsbuildinfo
+*.log
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+*.iml
 
 # osx
 .DS_Store

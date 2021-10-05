@@ -1,4 +1,4 @@
-export * from './flowState'
-export * from './generateIntervals'
-export * from './time'
-export * from './types'
+export * from './flowState' // core algo
+export * from './generateIntervals' // interval generator
+export * from './time' // time helpers
+export * from './types' // types

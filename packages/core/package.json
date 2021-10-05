@@ -5,19 +5,23 @@
 	"main": "./lib/cjs/index.js",
 	"module": "./lib/esm/index.js",
 	"types": "./lib/esm/index.d.ts",
-	"scripts": {
-		"build": "yarn build:esm && yarn build:cjs",
-		"build:esm": "tsc",
-		"build:cjs": "tsc --module commonjs --outDir lib/cjs",
-		"clean": "rm -rf ./lib",
-		"test": "export TS_NODE_PROJECT=\"tsconfig.testing.json\" && mocha -r ts-node/register 'tests/**/*.ts' --exit"
-	},
+	"files": [
+		"lib"
+	],
+	"license": "MIT",
+	"private": false,
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Flow-State-Labs/flowstate.git",
 		"directory": "packages/core"
 	},
-	"license": "MIT",
+	"scripts": {
+		"build": "yarn build:esm && yarn build:cjs",
+		"build:esm": "tsc",
+		"build:cjs": "tsc --module commonjs --outDir lib/cjs",
+		"clean": "rm -rf ./lib",
+		"test": "export TS_NODE_PROJECT=\"tsconfig.testing.json\" && mocha -r ts-node/register 'tests/**/*.ts' --exit --timeout 60000"
+	},
 	"devDependencies": {
 		"@types/bn.js": "^5.1.0",
 		"@types/chai": "^4.2.22",
