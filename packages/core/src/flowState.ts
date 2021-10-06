@@ -11,6 +11,7 @@ export function getFlowState({
 	const intervals = generateIntervals(timeFrame, granularity)
 	let flowState: Array<FlowState> = []
 	// loop the intervals
+	console.log('flowState start')
 	for (let index = 0; index < intervals.length - 1; ++index) {
 		const intervalFlowState = getIntervalFlowState({
 			timeFrame: {
@@ -32,6 +33,7 @@ export function getIntervalFlowState({
 
 	// loop flowUpdates to split:
 	// beginning of arr to startTime, startTime to endTime
+	console.log('split')
 	let startIndex, endIndex, iterator
 	for (iterator = 0; iterator < flowUpdates.length; ++iterator) {
 		if (flowUpdates[iterator].timestamp >= start) {
@@ -49,6 +51,7 @@ export function getIntervalFlowState({
 	let openFlows: Array<FlowUpdate> = []
 
 	// loop flowUpdates to find flows opened and updated but NOT closed before start
+	console.log('before')
 	for (const flowUpdate of flowUpdatesBeforeStart) {
 		switch (flowUpdate.type) {
 			case FlowUpdateType.Created:
@@ -72,6 +75,7 @@ export function getIntervalFlowState({
 	}
 
 	// loop openFlows to push open flows to the flowState before looping
+	console.log('open -> flowState')
 	let flowState: Array<FlowState> = openFlows.map(openFlow => ({
 		flowId: openFlow.flowId,
 		updates: [openFlow.timestamp],
@@ -83,6 +87,7 @@ export function getIntervalFlowState({
 	}))
 
 	// loop flowUpdates to handle events throughout the timeFrame
+	console.log('during')
 	for (const flowUpdate of flowUpdatesStartToEnd) {
 		const flowStateIndex = flowState.findIndex(
 			flow => flow.flowId === flowUpdate.flowId
@@ -172,6 +177,7 @@ export function getIntervalFlowState({
 	}
 
 	// final pass over flows not closed before the end of the day
+	console.log('finishing up')
 	for (const openFlow of openFlows) {
 		const flowStateIndex = flowState.findIndex(
 			flow => flow.flowId === openFlow.flowId
@@ -208,5 +214,6 @@ export function getIntervalFlowState({
 		}
 	}
 
+	console.log('done')
 	return flowState
 }
